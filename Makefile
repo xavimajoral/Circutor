@@ -32,3 +32,6 @@ add-site:
 		-H "Content-Type: application/json" \
 		-d '{"LocationId":"market-hall"}' \
       	-H "Authorization: Bearer $(TOKEN)"
+
+docs:
+	~/go/bin/swag init -g server.go --parseVendor --parseDependency --parseInternal
