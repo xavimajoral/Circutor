@@ -1,15 +1,16 @@
 package main
 
 import (
+	"fmt"
 	_ "frontend-test-api/docs"
 	"frontend-test-api/handler"
 	"frontend-test-api/model"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/swaggo/echo-swagger"
-	"gorm.io/driver/sqlite" // Sqlite driver based on GGO
-	"gorm.io/gorm"
+	"xorm.io/xorm"
 )
 
 // @title Circutor Frontend TEST API
@@ -43,13 +44,20 @@ func main() {
 	//e.Use(jwtMiddleware)
 
 	// Database connection
-	db, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
+	db, err := xorm.NewEngine("sqlite3", "frontend-test.db")
+	//db, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
 	if err != nil {
 		e.Logger.Fatal(err)
 	}
 	// migration
-	db.AutoMigrate(&model.User{})
-	db.AutoMigrate(&model.Site{})
+	//db.AutoMigrate(&model.User{})
+	//db.AutoMigrate(&model.Site{})
+	if err := db.Sync2(new(model.User)); err != nil {
+		fmt.Println(err)
+	}
+	if err := db.Sync2(new(model.Site)); err != nil {
+		fmt.Println(err)
+	}
 
 	// Initialize handler
 	h := &handler.Handler{DB: db}

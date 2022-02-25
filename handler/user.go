@@ -19,21 +19,22 @@ import (
 func (h *Handler) Signup(c echo.Context) (err error) {
 	// Bind
 
-	u := &model.User{}
+	u := new(model.User)
 	if err = c.Bind(u); err != nil {
 		return
 	}
 
+	fmt.Println(u)
 	// Validate
 	if u.Email == "" || u.Password == "" {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "invalid email or password"}
 	}
 
 	// Save user
-	result := h.DB.Create(&u)
+	affected, err := h.DB.Insert(u)
 	fmt.Println("Created user with id", u.ID)
 	//user.ID // returns inserted data's primary key
-	fmt.Println(result.Error)
+	fmt.Println(affected, err)
 
 	return c.JSON(http.StatusCreated, u)
 }
@@ -53,9 +54,16 @@ func (h *Handler) Login(c echo.Context) (err error) {
 		return
 	}
 
-	if err := h.DB.Where("email = ? AND password = ?", u.Email, u.Password).First(&u).Error; err != nil {
+	if has, err := h.DB.Get(u); err != nil {
+		fmt.Println(err)
 		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "invalid email or password"}
+	} else {
+		fmt.Println(has)
 	}
+
+	//if err := h.DB.Where("email = ? AND password = ?", u.Email, u.Password).First(&u).Error; err != nil {
+	//	return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "invalid email or password"}
+	//}
 
 	//-----
 	// JWT
@@ -80,28 +88,39 @@ func (h *Handler) Login(c echo.Context) (err error) {
 }
 
 func (h *Handler) SitesAdd(c echo.Context) (err error) {
-	site := &model.Site{UserID: userIDFromToken(c)}
+	site := new(model.Site)
+	site.UserID = userIDFromToken(c)
 	if err = c.Bind(site); err != nil {
 		return
 	}
 
-	result := h.DB.Create(&site)
+	if affected, err := h.DB.Insert(site); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(affected)
+	}
 	fmt.Println("Created site with id", site.ID)
-	fmt.Println(result.Error)
+	fmt.Println(err)
 
 	return c.JSON(http.StatusOK, site)
 
 }
 
 func (h *Handler) SitesList(c echo.Context) (err error) {
-	var user model.User
-	if err := h.DB.First(&user, userIDFromToken(c)).Error; err != nil {
-		return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "invalid user in token"}
+	var user = model.User{ID: userIDFromToken(c)}
+	if has, err := h.DB.Get(&user); err != nil && !has {
+		fmt.Println("There has been an error", err, has)
 	}
-	fmt.Println(user)
+
+	//if err := h.DB.First(&user, ).Error; err != nil {
+	//	return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "invalid user in token"}
+	//}
+	fmt.Println("User id", user.ID)
 	var sites []model.Site
 
-	h.DB.Where("user_id = ?", user.ID).Find(&sites)
+	if err := h.DB.Where("user_id = ?", user.ID).Find(&sites); err != nil {
+		fmt.Println("There has been an error", err)
+	}
 	fmt.Println(sites)
 
 	return c.JSON(http.StatusOK, sites)

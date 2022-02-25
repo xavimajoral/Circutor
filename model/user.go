@@ -10,8 +10,8 @@ type UserSignup struct {
 }
 
 type User struct {
-	ID        uint `swaggerignore:"true"`
-	Email     string
+	ID        uint   `swaggerignore:"true" xorm:"autoincr pk"`
+	Email     string `xorm:"unique"`
 	Password  string
 	Token     string
 	Sites     []Site

@@ -1,12 +1,12 @@
 package handler
 
 import (
-	"gorm.io/gorm"
+	"xorm.io/xorm"
 )
 
 type (
 	Handler struct {
-		DB *gorm.DB
+		DB *xorm.Engine
 	}
 )
 
