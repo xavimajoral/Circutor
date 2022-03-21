@@ -1,31 +1,44 @@
 basePath: /
 definitions:
-  model.Site:
+  model.Bookmark:
     properties:
+      buildingId:
+        type: string
       createdAt:
-        description: User       User
         type: string
       id:
         type: integer
-      locationId:
-        type: string
       updatedAt:
         type: string
+      user:
+        $ref: '#/definitions/model.User'
       userID:
         type: integer
     type: object
+  model.Building:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  model.BuildingData:
+    properties:
+      timestamp:
+        type: string
+    type: object
   model.User:
     properties:
+      bookmarks:
+        items:
+          $ref: '#/definitions/model.Bookmark'
+        type: array
       createdAt:
         type: string
       email:
         type: string
       password:
         type: string
-      sites:
-        items:
-          $ref: '#/definitions/model.Site'
-        type: array
       token:
         type: string
       updatedAt:
@@ -36,6 +49,11 @@ definitions:
       email:
         type: string
       password:
+        type: string
+    type: object
+  model.addBookmark:
+    properties:
+      buildingId:
         type: string
     type: object
 info:
@@ -50,6 +68,58 @@ info:
   title: Circutor Frontend TEST API
   version: "1.0"
 paths:
+  /buildings:
+    get:
+      consumes:
+      - application/json
+      description: List Bookmarks from user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Building'
+            type: array
+      summary: ListBookmarks
+  /buildings/{id}/{period}:
+    get:
+      consumes:
+      - application/json
+      description: List Bookmarks from user
+      parameters:
+      - description: Building ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Start date YYYY-MM-DD
+        in: query
+        name: start
+        type: string
+      - description: End date YYYY-MM-DD
+        in: query
+        name: end
+        type: string
+      - description: Data aggeration period
+        enum:
+        - hourly
+        - daily
+        in: path
+        name: period
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.BuildingData'
+            type: array
+      summary: ListBookmarks
   /login:
     post:
       consumes:
@@ -82,4 +152,35 @@ paths:
           schema:
             $ref: '#/definitions/model.User'
       summary: Signup
+  /user/bookmarks:
+    get:
+      consumes:
+      - application/json
+      description: List Bookmarks from user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Bookmark'
+      summary: ListBookmarks
+    post:
+      consumes:
+      - application/json
+      description: Add a bookmar to a user
+      parameters:
+      - description: user signup
+        in: body
+        name: user
+        schema:
+          $ref: '#/definitions/model.addBookmark'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Bookmark'
+      summary: Add Bookmark
 swagger: "2.0"

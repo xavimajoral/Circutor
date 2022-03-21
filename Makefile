@@ -34,4 +34,4 @@ add-site:
       	-H "Authorization: Bearer $(TOKEN)"
 
 docs:
-	~/go/bin/swag init -g server.go --parseVendor --parseDependency --parseInternal
+	~/go/bin/swag init -g mybuildings/server.go --parseVendor --parseDependency --parseInternal

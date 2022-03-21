@@ -1,17 +1,48 @@
 package main
 
 import (
+	_ "cloud-front-test/docs"
+	"cloud-front-test/handler"
+	"cloud-front-test/model"
 	"fmt"
-	_ "frontend-test-api/docs"
-	"frontend-test-api/handler"
-	"frontend-test-api/model"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/spf13/viper"
 	"github.com/swaggo/echo-swagger"
 	"xorm.io/xorm"
 )
+
+type Config struct {
+	Port     int
+	Database string
+}
+
+func loadConfig() *Config {
+	cfg := &Config{
+		Port:     1234,
+		Database: "sqlite://myfile.db",
+	}
+
+	viper.SetConfigName("front-test")
+	viper.SetEnvPrefix("ft")
+
+	// Defaults
+	viper.SetDefault("Port", 897)
+	viper.SetDefault("Database", "")
+
+	//Flags
+	viper.AutomaticEnv()
+
+	viper.ReadInConfig()
+
+	if err := viper.Unmarshal(cfg); err != nil {
+		fmt.Println("cannot unmarshal config: %s", err)
+	}
+
+	return cfg
+}
 
 // @title Circutor Frontend TEST API
 // @version 1.0
@@ -26,6 +57,10 @@ import (
 
 // @BasePath /
 func main() {
+
+	config := loadConfig()
+	fmt.Println(config)
+
 	e := echo.New()
 	e.Logger.SetLevel(log.ERROR)
 	e.Use(middleware.Logger())
@@ -51,11 +86,11 @@ func main() {
 	}
 	// migration
 	//db.AutoMigrate(&model.User{})
-	//db.AutoMigrate(&model.Site{})
+	//db.AutoMigrate(&model.Bookmark{})
 	if err := db.Sync2(new(model.User)); err != nil {
 		fmt.Println(err)
 	}
-	if err := db.Sync2(new(model.Site)); err != nil {
+	if err := db.Sync2(new(model.Bookmark)); err != nil {
 		fmt.Println(err)
 	}
 
@@ -65,12 +100,14 @@ func main() {
 	// Routes
 	e.POST("/signup", h.Signup)
 	e.POST("/login", h.Login)
-	e.GET("/sites", h.SitesList, jwtMiddleware)
-	e.POST("/sites", h.SitesAdd, jwtMiddleware)
+	e.GET("/user/bookmarks", h.BookmarksList, jwtMiddleware)
+	e.POST("/user/bookmarks", h.BookmarksAdd, jwtMiddleware)
+	e.GET("/buildings", h.BuildingsList)
+	e.GET("/buildings/:id/:period", h.BuildingsData)
 	//e.POST("/follow/:id", h.Follow)
 	//e.POST("/posts", h.CreatePost)
 	//e.GET("/feed", h.FetchPost)
-	e.GET("/swagger/*", echoSwagger.WrapHandler)
+	e.GET("/docs/*", echoSwagger.WrapHandler)
 	// Start server
-	e.Logger.Fatal(e.Start(":1323"))
+	e.Logger.Fatal(e.Start(":1324"))
 }

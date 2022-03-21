@@ -4,7 +4,7 @@ package docs
 
 import "github.com/swaggo/swag"
 
-const docTemplate_swagger = `{
+const docTemplate = `{
     "schemes": {{ marshal .Schemes }},
     "swagger": "2.0",
     "info": {
@@ -24,6 +24,84 @@ const docTemplate_swagger = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/buildings": {
+            "get": {
+                "description": "List Bookmarks from user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "ListBookmarks",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Building"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/buildings/{id}/{period}": {
+            "get": {
+                "description": "List Bookmarks from user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "ListBookmarks",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Building ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Start date YYYY-MM-DD",
+                        "name": "start",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "End date YYYY-MM-DD",
+                        "name": "end",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "hourly",
+                            "daily"
+                        ],
+                        "type": "string",
+                        "description": "Data aggeration period",
+                        "name": "period",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.BuildingData"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Login a user",
@@ -73,33 +151,108 @@ const docTemplate_swagger = `{
                     }
                 }
             }
+        },
+        "/user/bookmarks": {
+            "get": {
+                "description": "List Bookmarks from user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "ListBookmarks",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Bookmark"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Add a bookmar to a user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Add Bookmark",
+                "parameters": [
+                    {
+                        "description": "user signup",
+                        "name": "user",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/model.addBookmark"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Bookmark"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
-        "model.Site": {
+        "model.Bookmark": {
             "type": "object",
             "properties": {
+                "buildingId": {
+                    "type": "string"
+                },
                 "createdAt": {
-                    "description": "User       User",
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
-                "locationId": {
-                    "type": "string"
-                },
                 "updatedAt": {
                     "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/model.User"
                 },
                 "userID": {
                     "type": "integer"
                 }
             }
         },
+        "model.Building": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.BuildingData": {
+            "type": "object",
+            "properties": {
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
         "model.User": {
             "type": "object",
             "properties": {
+                "bookmarks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Bookmark"
+                    }
+                },
                 "createdAt": {
                     "type": "string"
                 },
@@ -108,12 +261,6 @@ const docTemplate_swagger = `{
                 },
                 "password": {
                     "type": "string"
-                },
-                "sites": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Site"
-                    }
                 },
                 "token": {
                     "type": "string"
@@ -133,12 +280,20 @@ const docTemplate_swagger = `{
                     "type": "string"
                 }
             }
+        },
+        "model.addBookmark": {
+            "type": "object",
+            "properties": {
+                "buildingId": {
+                    "type": "string"
+                }
+            }
         }
     }
 }`
 
-// SwaggerInfo_swagger holds exported Swagger Info so clients can modify it
-var SwaggerInfo_swagger = &swag.Spec{
+// SwaggerInfo holds exported Swagger Info so clients can modify it
+var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "",
 	BasePath:         "/",
@@ -146,9 +301,9 @@ var SwaggerInfo_swagger = &swag.Spec{
 	Title:            "Circutor Frontend TEST API",
 	Description:      "This is a sample server for the Frontend TEST API.",
 	InfoInstanceName: "swagger",
-	SwaggerTemplate:  docTemplate_swagger,
+	SwaggerTemplate:  docTemplate,
 }
 
 func init() {
-	swag.Register(SwaggerInfo_swagger.InstanceName(), SwaggerInfo_swagger)
+	swag.Register(SwaggerInfo.InstanceName(), SwaggerInfo)
 }

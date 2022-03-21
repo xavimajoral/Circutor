@@ -1,8 +1,8 @@
 package handler
 
 import (
+	"cloud-front-test/model"
 	"fmt"
-	"frontend-test-api/model"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -61,14 +61,6 @@ func (h *Handler) Login(c echo.Context) (err error) {
 		fmt.Println(has)
 	}
 
-	//if err := h.DB.Where("email = ? AND password = ?", u.Email, u.Password).First(&u).Error; err != nil {
-	//	return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "invalid email or password"}
-	//}
-
-	//-----
-	// JWT
-	//-----
-
 	// Create token
 	token := jwt.New(jwt.SigningMethodHS256)
 
@@ -87,26 +79,40 @@ func (h *Handler) Login(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, u)
 }
 
-func (h *Handler) SitesAdd(c echo.Context) (err error) {
-	site := new(model.Site)
-	site.UserID = userIDFromToken(c)
-	if err = c.Bind(site); err != nil {
+// BookmarksAdd godoc
+// @Summary      Add Bookmark
+// @Description  Add a bookmar to a user
+// @Accept       json
+// @Produce      json
+// @Param   	 user  body     model.addBookmark     yes  "user signup"
+// @Success      200  {object}  model.Bookmark
+// @Router       /user/bookmarks [post]
+func (h *Handler) BookmarksAdd(c echo.Context) (err error) {
+	bookmark := new(model.Bookmark)
+	bookmark.UserID = userIDFromToken(c)
+	if err = c.Bind(bookmark); err != nil {
 		return
 	}
 
-	if affected, err := h.DB.Insert(site); err != nil {
+	if affected, err := h.DB.Insert(bookmark); err != nil {
 		fmt.Println(err)
 	} else {
 		fmt.Println(affected)
 	}
-	fmt.Println("Created site with id", site.ID)
-	fmt.Println(err)
+	fmt.Println("Created site with id", bookmark.ID)
 
-	return c.JSON(http.StatusOK, site)
+	return c.JSON(http.StatusOK, bookmark)
 
 }
 
-func (h *Handler) SitesList(c echo.Context) (err error) {
+// BookmarksList godoc
+// @Summary      ListBookmarks
+// @Description  List Bookmarks from user
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  model.Bookmark
+// @Router       /user/bookmarks [get]
+func (h *Handler) BookmarksList(c echo.Context) (err error) {
 	var user = model.User{ID: userIDFromToken(c)}
 	if has, err := h.DB.Get(&user); err != nil && !has {
 		fmt.Println("There has been an error", err, has)
@@ -116,14 +122,13 @@ func (h *Handler) SitesList(c echo.Context) (err error) {
 	//	return &echo.HTTPError{Code: http.StatusUnauthorized, Message: "invalid user in token"}
 	//}
 	fmt.Println("User id", user.ID)
-	var sites []model.Site
+	var bookmarks []model.Bookmark
 
-	if err := h.DB.Where("user_id = ?", user.ID).Find(&sites); err != nil {
+	if err := h.DB.Where("user_id = ?", user.ID).Find(&bookmarks); err != nil {
 		fmt.Println("There has been an error", err)
 	}
-	fmt.Println(sites)
 
-	return c.JSON(http.StatusOK, sites)
+	return c.JSON(http.StatusOK, bookmarks)
 }
 
 func userIDFromToken(c echo.Context) uint {
