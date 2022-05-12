@@ -9,6 +9,7 @@ signup:
       -H "Content-Type: application/json" \
       -d '{"email":"xorduna@circutor.com","password":"123456"}'
 
+
 login:
 	curl \
 	  -X POST \
