@@ -33,5 +33,11 @@ add-site:
 		-d '{"LocationId":"market-hall"}' \
       	-H "Authorization: Bearer $(TOKEN)"
 
+tidy:
+	go mod tidy
+
+run:
+	go run server.go
+
 docs:
 	~/go/bin/swag init -g mybuildings/server.go --parseVendor --parseDependency --parseInternal
