@@ -2,6 +2,8 @@ package handler
 
 import (
 	"bytes"
+	"compress/gzip"
+	"embed"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/tobgu/qframe"
@@ -9,26 +11,45 @@ import (
 	qframeFunction "github.com/tobgu/qframe/function"
 	gonumFloat "gonum.org/v1/gonum/floats"
 	"net/http"
-	"os"
 	"time"
 )
 
-func jsonFileQFrame(filePath string) qframe.QFrame {
-	jsonData, err := os.Open(filePath)
+func jsonFileQFrame(dataFiles embed.FS, filePath string) (qframe.QFrame, error) {
+	jsonData, err := dataFiles.Open(filePath)
 	if err != nil {
-		fmt.Println("Unable to read input file "+filePath, err)
+		//fmt.Println("Unable to read input file "+filePath, err)
+		return qframe.QFrame{}, err
 	}
 	defer jsonData.Close()
 	df := qframe.ReadJSON(jsonData)
-	return df
+	return df, nil
 }
 
-func getBuildingData(buildingId string) qframe.QFrame {
-	electricity := jsonFileQFrame("data/" + buildingId + ".json")
+func jsonFileQFrameZ(dataFiles embed.FS, filePath string) (qframe.QFrame, error) {
+	f, err := dataFiles.Open(filePath)
+	if err != nil {
+		return qframe.QFrame{}, err
+	}
+	defer f.Close()
+	gr, err := gzip.NewReader(f)
+	if err != nil {
+		return qframe.QFrame{}, err
+	}
+	defer gr.Close()
+
+	df := qframe.ReadJSON(gr)
+	return df, err
+}
+
+func getBuildingData(dataFiles embed.FS, buildingId string) (qframe.QFrame, error) {
+	electricity, err := jsonFileQFrameZ(dataFiles, "dataz/"+buildingId+".json.gz")
+	if err != nil {
+		return qframe.QFrame{}, err
+	}
 	electricity = electricity.Apply(
 		qframe.Instruction{Fn: tsToTime, DstCol: "ts", SrcCol1: "timestamp"},
 		qframe.Instruction{Fn: tsToDay, DstCol: "day", SrcCol1: "timestamp"})
-	return electricity
+	return electricity, nil
 }
 
 func tsToTime(ts *string) int {
@@ -49,21 +70,30 @@ func tsToDay(ts *string) *string {
 	return &s
 }
 
-func filterDataFrame(df qframe.QFrame, start string, end string) qframe.QFrame {
+func filterDataFrame(df qframe.QFrame, start string, end string) (qframe.QFrame, error) {
+	startTs, err := dayToTs(start)
+	if err != nil {
+		return qframe.QFrame{}, fmt.Errorf("Unable to parse start day: %s", err)
+	}
+	endTs, err := dayToTs(end)
+	if err != nil {
+		return qframe.QFrame{}, fmt.Errorf("Unable to parse end day: %s", err)
+	}
+
 	df = df.Filter(qframe.And(
-		qframe.Filter{Column: "ts", Comparator: ">=", Arg: dayToTs(start)},
-		qframe.Filter{Column: "ts", Comparator: "<=", Arg: dayToTs(end)},
+		qframe.Filter{Column: "ts", Comparator: ">=", Arg: startTs},
+		qframe.Filter{Column: "ts", Comparator: "<=", Arg: endTs},
 	),
 	)
-	return df
+	return df, nil
 }
 
-func dayToTs(day string) int {
+func dayToTs(day string) (int, error) {
 	tm, err := time.Parse("2006-01-02", day)
 	if err != nil {
-		panic(err)
+		return 0, err
 	}
-	return int(tm.Unix())
+	return int(tm.Unix()), nil
 }
 
 // BuildingsList godoc
@@ -74,7 +104,11 @@ func dayToTs(day string) int {
 // @Success      200  {array}  model.Building
 // @Router       /buildings [get]
 func (h *Handler) BuildingsList(c echo.Context) (err error) {
-	df := jsonFileQFrame("data/buildings.json")
+
+	df, err := jsonFileQFrame(h.DataFiles, "dataz/buildings.json")
+	if err != nil {
+		return err
+	}
 	df = df.Copy("name", "locationNameEnglish")
 	df = df.Select("id", "name")
 	var buf bytes.Buffer
@@ -88,8 +122,8 @@ func (h *Handler) BuildingsList(c echo.Context) (err error) {
 }
 
 // BuildingsData godoc
-// @Summary      ListBookmarks
-// @Description  List Bookmarks from user
+// @Summary      Building Data
+// @Description  Returns data from a specific building
 // @Accept       json
 // @Produce      json
 // @Success      200  {array}  model.BuildingData
@@ -105,8 +139,14 @@ func (h *Handler) BuildingsData(c echo.Context) (err error) {
 	buildingId := c.Param("id")
 
 	fmt.Println("Getting ", period, "data from building:", buildingId, "from:", start, "to:", end)
-	df := getBuildingData(buildingId)
-	df = filterDataFrame(df, start, end)
+	df, err := getBuildingData(h.DataFiles, buildingId)
+	if err != nil {
+		return err
+	}
+	df, err = filterDataFrame(df, start, end)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Unable to parse start or end string: %s", err))
+	}
 
 	if period == "daily" {
 		df = df.GroupBy(groupby.Columns("day")).Aggregate(qframe.Aggregation{Fn: gonumFloat.Sum, Column: "value"})

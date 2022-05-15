@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"embed"
 	"xorm.io/xorm"
 )
 
 type (
 	Handler struct {
-		DB *xorm.Engine
+		DB        *xorm.Engine
+		DataFiles embed.FS
 	}
 )
 
