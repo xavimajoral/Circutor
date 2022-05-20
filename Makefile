@@ -7,10 +7,10 @@ tidy:
 	go mod tidy
 
 run:
-	go run server.go
+	go run main.go
 
 build:
-	GOARCH=$(ARCH) GOOS=$(OS)  go build -ldflags
+	GOARCH=$(ARCH) GOOS=$(OS) go build
 
 build-docker:
 	docker build \
@@ -19,5 +19,14 @@ build-docker:
 		--build-arg GOARCH=$(ARCH) \
 		.
 
+build-docker-amd64:
+	docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		-f cloud-front-test.dockerfile \
+		-t circutor/$(API_IMAGE_NAME):$(VERSION) \
+		--push \
+		.
+
+
 docs:
-	~/go/bin/swag init -g server.go --parseVendor --parseDependency --parseInternal
+	~/go/bin/swag init -g main.go --parseVendor --parseDependency --parseInternal

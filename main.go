@@ -51,6 +51,9 @@ func loadConfig() *Config {
 // @title Circutor Frontend TEST API
 // @version 1.0
 // @description This is a sample server for the Frontend TEST API.
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization.
 
 // @contact.name API Support
 // @contact.url http://www.swagger.io/support
@@ -106,8 +109,9 @@ func main() {
 	e.POST("/login", h.Login)
 	e.GET("/user/bookmarks", h.BookmarksList, jwtMiddleware)
 	e.POST("/user/bookmarks", h.BookmarksAdd, jwtMiddleware)
-	e.GET("/buildings", h.BuildingsList)
-	e.GET("/buildings/:id/:period", h.BuildingsData)
+	e.DELETE("/user/bookmarks/:id", h.BookmarksDelete, jwtMiddleware)
+	e.GET("/buildings", h.BuildingsList, jwtMiddleware)
+	e.GET("/buildings/:id/:period", h.BuildingsData, jwtMiddleware)
 	//e.POST("/follow/:id", h.Follow)
 	//e.POST("/posts", h.CreatePost)
 	//e.GET("/feed", h.FetchPost)

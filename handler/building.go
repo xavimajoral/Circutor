@@ -97,8 +97,8 @@ func dayToTs(day string) (int, error) {
 }
 
 // BuildingsList godoc
-// @Summary      ListBookmarks
-// @Description  List Bookmarks from user
+// @Summary      ListBuildings
+// @Description  List all Buildings
 // @Accept       json
 // @Produce      json
 // @Success      200  {array}  model.Building
@@ -153,6 +153,7 @@ func (h *Handler) BuildingsData(c echo.Context) (err error) {
 		df = df.Apply(
 			qframe.Instruction{Fn: qframeFunction.StrS, DstCol: "timestamp", SrcCol1: "day"},
 		)
+		df = df.Sort(qframe.Order{Column: "day"})
 	}
 	df = df.Select("timestamp", "value")
 	var buf bytes.Buffer

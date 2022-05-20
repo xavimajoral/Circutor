@@ -19,8 +19,8 @@ FROM alpine:latest
 ARG BUILD_DATE
 ARG BUILD_REF
 
-COPY --from=builder /cloud-front-test/mybuildings /cloud-front-test/mybuildings
-COPY --from=builder /cloud-front-test/data /cloud-front-test/data
+COPY --from=builder /cloud-front-test /cloud-front-test
+#COPY --from=builder /cloud-front-test/data /cloud-front-test/data
 WORKDIR /cloud-front-test
 
 CMD ["./cloud-front-test"]

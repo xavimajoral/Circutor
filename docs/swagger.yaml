@@ -5,13 +5,12 @@ definitions:
       buildingId:
         type: string
       createdAt:
+        description: User       User
         type: string
       id:
         type: integer
       updatedAt:
         type: string
-      user:
-        $ref: '#/definitions/model.User'
       userID:
         type: integer
     type: object
@@ -26,6 +25,8 @@ definitions:
     properties:
       timestamp:
         type: string
+      value:
+        type: number
     type: object
   model.User:
     properties:
@@ -72,7 +73,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: List Bookmarks from user
+      description: List all Buildings
       produces:
       - application/json
       responses:
@@ -82,12 +83,12 @@ paths:
             items:
               $ref: '#/definitions/model.Building'
             type: array
-      summary: ListBookmarks
+      summary: ListBuildings
   /buildings/{id}/{period}:
     get:
       consumes:
       - application/json
-      description: List Bookmarks from user
+      description: Returns data from a specific building
       parameters:
       - description: Building ID
         in: path
@@ -119,7 +120,7 @@ paths:
             items:
               $ref: '#/definitions/model.BuildingData'
             type: array
-      summary: ListBookmarks
+      summary: Building Data
   /login:
     post:
       consumes:
@@ -140,10 +141,16 @@ paths:
             $ref: '#/definitions/model.User'
       summary: Login
   /signup:
-    get:
+    post:
       consumes:
       - application/json
-      description: Signs up a user
+      description: Register a a user
+      parameters:
+      - description: user signup
+        in: body
+        name: user
+        schema:
+          $ref: '#/definitions/model.UserSignup'
       produces:
       - application/json
       responses:
@@ -183,4 +190,24 @@ paths:
           schema:
             $ref: '#/definitions/model.Bookmark'
       summary: Add Bookmark
+  /user/bookmarks/{id}:
+    delete:
+      description: Delete a bookmark from a user
+      parameters:
+      - description: Bookmark ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Delete Bookmark
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization.
+    type: apiKey
 swagger: "2.0"

@@ -18,14 +18,14 @@
     "paths": {
         "/buildings": {
             "get": {
-                "description": "List Bookmarks from user",
+                "description": "List all Buildings",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "application/json"
                 ],
-                "summary": "ListBookmarks",
+                "summary": "ListBuildings",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -41,14 +41,14 @@
         },
         "/buildings/{id}/{period}": {
             "get": {
-                "description": "List Bookmarks from user",
+                "description": "Returns data from a specific building",
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "application/json"
                 ],
-                "summary": "ListBookmarks",
+                "summary": "Building Data",
                 "parameters": [
                     {
                         "type": "string",
@@ -125,8 +125,8 @@
             }
         },
         "/signup": {
-            "get": {
-                "description": "Signs up a user",
+            "post": {
+                "description": "Register a a user",
                 "consumes": [
                     "application/json"
                 ],
@@ -134,6 +134,16 @@
                     "application/json"
                 ],
                 "summary": "Signup",
+                "parameters": [
+                    {
+                        "description": "user signup",
+                        "name": "user",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/model.UserSignup"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -191,6 +201,29 @@
                     }
                 }
             }
+        },
+        "/user/bookmarks/{id}": {
+            "delete": {
+                "description": "Delete a bookmark from a user",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Delete Bookmark",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Bookmark ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -201,6 +234,7 @@
                     "type": "string"
                 },
                 "createdAt": {
+                    "description": "User       User",
                     "type": "string"
                 },
                 "id": {
@@ -208,9 +242,6 @@
                 },
                 "updatedAt": {
                     "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/model.User"
                 },
                 "userID": {
                     "type": "integer"
@@ -233,6 +264,9 @@
             "properties": {
                 "timestamp": {
                     "type": "string"
+                },
+                "value": {
+                    "type": "number"
                 }
             }
         },
@@ -280,6 +314,13 @@
                     "type": "string"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization.",
+            "in": "header"
         }
     }
 }
