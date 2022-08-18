@@ -1,12 +1,9 @@
 # Build the Go Binary.
 FROM golang:1.17-alpine AS builder
 
-RUN apk update \
-    && apk add --no-cache git \
-    && apk add --no-cache ca-certificates \
-    && apk add --update gcc musl-dev
+RUN apk add --no-cache gcc g++ git openssh-client
 
-ENV CGO_ENABLED 0
+ENV CGO_ENABLED 1
 ARG BUILD_REF
 
 ARG GOARCH

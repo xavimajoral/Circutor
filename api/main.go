@@ -70,7 +70,12 @@ func main() {
 	e.Use(middleware.Logger())
 
 	// Corswith default config allows *
-	e.Use(middleware.CORSWithConfig(middleware.DefaultCORSConfig))
+	//e.Use(middleware.CORSWithConfig(middleware.DefaultCORSConfig))
+	//e.Use(middleware.CORS())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"http://localhost:3001", "*"},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+	}))
 
 	jwtMiddleware := middleware.JWTWithConfig(middleware.JWTConfig{
 		SigningKey: []byte(handler.Key),

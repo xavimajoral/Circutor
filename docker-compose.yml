@@ -8,6 +8,8 @@ services:
       context: ./web
     ports:
       - "3001:3001"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   api:
   #  network_mode: host
     restart: always
