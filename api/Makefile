@@ -1,7 +1,7 @@
 ARCH :=  $(shell ./get-go-arch.sh)
 OS := darwin
 API_IMAGE_NAME := cloud-front-test
-VERSION := latest
+VERSION := 1.1
 
 tidy:
 	go mod tidy
@@ -19,7 +19,7 @@ build-docker:
 		--build-arg GOARCH=$(ARCH) \
 		.
 
-build-docker-amd64:
+build-docker-multiplatform:
 	docker buildx build \
 		--platform linux/amd64,linux/arm64 \
 		-f cloud-front-test.dockerfile \

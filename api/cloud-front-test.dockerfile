@@ -1,6 +1,11 @@
 # Build the Go Binary.
 FROM golang:1.17-alpine AS builder
 
+RUN apk update \
+    && apk add --no-cache git \
+    && apk add --no-cache ca-certificates \
+    && apk add --update gcc musl-dev
+
 ENV CGO_ENABLED 0
 ARG BUILD_REF
 
@@ -11,7 +16,7 @@ COPY . /cloud-front-test
 
 # Build the service binary.
 WORKDIR /cloud-front-test
-RUN GOARCH=${GOARCH}  go build -ldflags "-X main.build=${BUILD_REF}"
+RUN GOARCH=${GOARCH}  go build -ldflags "-w -s -X main.build=${BUILD_REF}"
 
 # Run the Go Binary in Alpine.
 FROM alpine:latest
