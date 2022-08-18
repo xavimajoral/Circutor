@@ -1,0 +1,24 @@
+version: "3.7"
+services:
+  cloud-front-test-web:
+    network_mode: host
+    restart: always
+    build:
+      dockerfile: Dockerfile-web
+      context: ./cloud-front-test-web
+    ports:
+      - "3000:3000"
+  # cloud-front-test-api:
+  #   network_mode: host
+  #   restart: always
+  #   build:
+  #     dockerfile: cloud-front-test.dockerfile
+  #     context: ./cloud-front-test-api
+  #   ports:
+  #     - "1234:1234"
+  cloud-front-test-api:
+    network_mode: host
+    image: circutor/cloud-front-test:1.1
+    restart: always
+    ports:
+      - 1234:1234

@@ -1,0 +1,8 @@
+version: "3.7"
+services:
+  react-web:
+    build:
+      dockerfile: Dockerfile-web
+      context: .
+    ports:
+      - "3005:3000"
